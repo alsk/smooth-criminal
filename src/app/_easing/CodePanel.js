@@ -8,6 +8,12 @@ const PATH_DESC =
 const CSS_DESC =
   "A CSS timing function that approximates the curve as a series of linear stops. Natively supported in all modern browsers — no JavaScript required.";
 
+const BEZIER_DESC_EXACT =
+  "An exact CSS cubic-bezier() extracted from the curve's two control points. Works natively in all browsers and in any tool that accepts a timing function.";
+
+const BEZIER_DESC_APPROX =
+  "A best-fit CSS cubic-bezier() approximating this multi-point curve. The fit is computed via iterative least-squares — it won't be pixel-perfect but is good for most use cases.";
+
 const PATH_USAGE = `// GSAP CustomEase
 const ease = CustomEase.create("ease", "M0,0 C…")
 
@@ -16,15 +22,45 @@ gsap.to(".el", {
   duration: 1,
 })`;
 
-const CSS_USAGE = `.element {
-  transition: transform 1s linear(0, …, 1);
-}`;
+function buildLinearUsage(linearCss) {
+  const m = linearCss.match(/^linear\((.+)\)$/);
+  if (!m) return `.element {\n  transition: transform 1s linear(…);\n}`;
+  const stops = m[1].split(',').map(s => s.trim());
+  const preview = stops.length > 4
+    ? [stops[0], stops[1], '…', stops[stops.length - 2], stops[stops.length - 1]].join(', ')
+    : stops.join(', ');
+  return `.element {\n  transition: transform 1s linear(${preview});\n}`;
+}
 
-export default function CodePanel({ pathString, linearCss, linearGoesBackward }) {
+const BEZIER_USAGE = `.element {
+  transition: transform 1s cubic-bezier(…);
+  animation-timing-function: cubic-bezier(…);
+}
+
+/* Tailwind — arbitrary value */
+/* class="ease-[cubic-bezier(…)]" */
+
+/* Tailwind — config */
+/* transitionTimingFunction: { custom: 'cubic-bezier(…)' } */
+/* class="ease-custom" */`;
+
+export default function CodePanel({ pathString, linearCss, linearGoesBackward, cubicBezier }) {
   return (
     <div className="codeStack">
       <CodeCell label="vector path" code={pathString} description={PATH_DESC} usage={PATH_USAGE} lang="js" />
-      <CodeCell label="css linear()" code={linearCss} description={CSS_DESC} usage={CSS_USAGE} lang="css" showAlert={linearGoesBackward} />
+      <CodeCell label="css linear()" code={linearCss} description={CSS_DESC} usage={buildLinearUsage(linearCss)} lang="css" showAlert={linearGoesBackward} />
+      {cubicBezier && (
+        <CodeCell
+          label="css cubic-bezier()"
+          code={cubicBezier.str}
+          description={cubicBezier.exact ? BEZIER_DESC_EXACT : BEZIER_DESC_APPROX}
+          usage={BEZIER_USAGE}
+          lang="css"
+          showAlert={!cubicBezier.exact}
+          alertDesc="CSS cubic-bezier() doesn't allow extra anchor points. Use css linear() if you need the current curve."
+          hideContent={!cubicBezier.exact}
+        />
+      )}
     </div>
   );
 }
@@ -56,7 +92,7 @@ function SyntaxHighlight({ code, lang }) {
           parts.push(<span key={key++} style={{ color: '#9bb5c4' }}>{prop[2]}</span>);
           parts.push(<span key={key++} style={{ color: '#6b6560' }}>{prop[3]}</span>);
           const valueStr = prop[4];
-          const lm = valueStr.match(/(.*)(linear\([^)]*…[^)]*\))(.*)/);
+          const lm = valueStr.match(/(.*)((?:linear|cubic-bezier)\([^)]*…[^)]*\))(.*)/);
           if (lm) {
             parts.push(lm[1]);
             parts.push(<span key={key++} style={EASING_HIGHLIGHT}>{lm[2]}</span>);
@@ -87,7 +123,7 @@ function SyntaxHighlight({ code, lang }) {
   return <>{parts}</>;
 }
 
-function CodeCell({ label, code, description, usage, showAlert, lang = 'js' }) {
+function CodeCell({ label, code, description, usage, showAlert, alertDesc, lang = 'js', hideContent = false }) {
   const [copied, setCopied] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [howToOpen, setHowToOpen] = useState(false);
@@ -155,7 +191,7 @@ function CodeCell({ label, code, description, usage, showAlert, lang = 'js' }) {
           {showAlert && (
             <div className={`alertPopup ${alertOpen ? "alertPopupOpen" : ""}`}>
               <p className="infoDesc">
-                CSS linear() is monotonic, meaning its values can't go backward in time. <span className="alertHighlight">Your curve reverses in X.</span> Use the vector path with GSAP CustomEase for backward-going curves.
+                {alertDesc ?? <>CSS linear() is monotonic, meaning its values can't go backward. <span className="alertHighlight">Your curve reverses in X.</span> Use the vector path instead.</>}
               </p>
             </div>
           )}
@@ -164,6 +200,7 @@ function CodeCell({ label, code, description, usage, showAlert, lang = 'js' }) {
           type="button"
           onClick={copy}
           className={`pushBtn copyBlockBtn ${copied ? "copyBlockBtnDone" : ""}`}
+          style={hideContent ? { opacity: 0, pointerEvents: "none", transition: "opacity 250ms ease" } : { opacity: 1, transition: "opacity 250ms ease" }}
         >
           <span className="pushFace">
             {copied ? <CheckIcon /> : <ClipboardIcon />}
@@ -171,31 +208,35 @@ function CodeCell({ label, code, description, usage, showAlert, lang = 'js' }) {
           </span>
         </button>
       </div>
-      <pre className="codeBlock">
-        <code>{code}</code>
-      </pre>
-      <div className="usageDrawerWrap">
-        <button
-          type="button"
-          className="howToBtn"
-          onClick={() => setHowToOpen((v) => !v)}
-          aria-expanded={howToOpen}
-        >
-          <svg
-            className={`howToChevron ${howToOpen ? "howToChevronOpen" : ""}`}
-            width="10" height="10" viewBox="0 0 10 10" fill="none"
-            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <polyline points="2,3.5 5,6.5 8,3.5" />
-          </svg>
-          <span>How to integrate</span>
-        </button>
-        <div className={`codeDrawer ${howToOpen ? "codeDrawerOpen" : ""}`}>
-          <div className="codeDrawerInner">
-            <pre className="codeUsageBlock">
-              <SyntaxHighlight code={usage} lang={lang} />
-            </pre>
+      <div className={`codePanelBody ${!hideContent ? "codePanelBodyOpen" : ""}`}>
+        <div className="codePanelBodyInner">
+          <pre className="codeBlock">
+            <code>{code}</code>
+          </pre>
+          <div className="usageDrawerWrap">
+            <button
+              type="button"
+              className="howToBtn"
+              onClick={() => setHowToOpen((v) => !v)}
+              aria-expanded={howToOpen}
+            >
+              <svg
+                className={`howToChevron ${howToOpen ? "howToChevronOpen" : ""}`}
+                width="10" height="10" viewBox="0 0 10 10" fill="none"
+                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="2,3.5 5,6.5 8,3.5" />
+              </svg>
+              <span>How to integrate</span>
+            </button>
+            <div className={`codeDrawer ${howToOpen ? "codeDrawerOpen" : ""}`}>
+              <div className="codeDrawerInner">
+                <pre className="codeUsageBlock">
+                  <SyntaxHighlight code={usage} lang={lang} />
+                </pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>

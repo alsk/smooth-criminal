@@ -28,7 +28,7 @@ const svgToGx = (sx) => (sx - PAD) / (W - 2 * PAD);
 const svgToGy = (sy) =>
   Y_MIN + (1 - (sy - PAD) / (H - 2 * PAD)) * (Y_MAX - Y_MIN);
 
-export default function Graph({ anchors, setAnchors, duration = 1500, onDurationChange, onWillChange, animStartRef }) {
+export default function Graph({ anchors, setAnchors, duration = 1500, onDurationChange, onWillChange, animStartRef, cubicBezier }) {
   const svgRef = useRef(null);
   const [drag, setDrag] = useState(null); // { kind, index, pointerId }
   const [selectedAnchor, setSelectedAnchor] = useState(null);
@@ -251,6 +251,14 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
       <Grid />
       <BoundsRect />
 
+      {/* Ghost bezier approximation curve — kept for future use
+      {cubicBezier && (
+        <path
+          d={`M${gxToSvg(0)},${gyToSvg(0)} C${gxToSvg(cubicBezier.x1)},${gyToSvg(cubicBezier.y1)} ${gxToSvg(cubicBezier.x2)},${gyToSvg(cubicBezier.y2)} ${gxToSvg(1)},${gyToSvg(1)}`}
+          className="shadowCurve"
+          fill="none"
+        />
+      )} */}
       <path d={dSvg} className="curve" fill="none" />
 
       {/* Invisible thick hit area for click-to-insert */}
@@ -297,7 +305,16 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
         return lines;
       })}
 
-      {/* Handles (drawn before anchors so anchors sit on top) */}
+      {/* AnchorEnd rects before handles so handles paint on top */}
+      {anchors.map((a, i) => {
+        if (i !== 0 && i !== anchors.length - 1) return null;
+        const cx = gxToSvg(a.x);
+        const cy = gyToSvg(a.y);
+        const s = 8;
+        return <rect key={`a-${i}`} x={cx - s} y={cy - s} width={s * 2} height={s * 2} className="anchorEnd" />;
+      })}
+
+      {/* Handles on top of anchorEnd rects */}
       {anchors.map((a, i) => {
         const sel = selectedAnchor === i;
         const els = [];
@@ -330,25 +347,12 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
         return els;
       })}
 
-      {/* Anchors */}
+      {/* Draggable mid anchors on top */}
       {anchors.map((a, i) => {
-        const isEnd = i === 0 || i === anchors.length - 1;
+        if (i === 0 || i === anchors.length - 1) return null;
         const sel = selectedAnchor === i;
         const cx = gxToSvg(a.x);
         const cy = gyToSvg(a.y);
-        if (isEnd) {
-          const s = 8;
-          return (
-            <rect
-              key={`a-${i}`}
-              x={cx - s}
-              y={cy - s}
-              width={s * 2}
-              height={s * 2}
-              className="anchorEnd"
-            />
-          );
-        }
         return (
           <circle
             key={`a-${i}`}
@@ -367,20 +371,35 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
       {onDurationChange && (() => {
         const label = formatDuration(duration);
         const pillW = Math.round(label.length * 16 + 40);
+        const by = H - PAD + 38;
+        const bx = gxToSvg(1);
+        const replayHW = 24;
+        const gap = 8;
         return (
-          <g
-            transform={`translate(${gxToSvg(1)}, ${H - PAD + 38})`}
-            className="durationBtn"
-            onPointerDown={onDurationPointerDown}
-            onPointerMove={onDurationPointerMove}
-            onPointerUp={onDurationPointerUp}
-            onPointerCancel={onDurationPointerUp}
-          >
-            <rect x={-pillW} y={-24} width={pillW} height={48} rx={10} className="durationPill" />
-            <text x={-14} y={9} textAnchor="end" className="durationLabelText">
-              {label}
-            </text>
-          </g>
+          <>
+            <g
+              transform={`translate(${bx}, ${by})`}
+              className="durationBtn"
+              onPointerDown={onDurationPointerDown}
+              onPointerMove={onDurationPointerMove}
+              onPointerUp={onDurationPointerUp}
+              onPointerCancel={onDurationPointerUp}
+            >
+              <rect x={-pillW} y={-24} width={pillW} height={48} rx={10} className="durationPill" />
+              <text x={-14} y={9} textAnchor="end" className="durationLabelText">
+                {label}
+              </text>
+            </g>
+            <g
+              transform={`translate(${bx - pillW - gap - replayHW}, ${by})`}
+              className="replayBtn"
+              onClick={() => { animStartRef.current = performance.now(); }}
+            >
+              <rect x={-replayHW} y={-24} width={replayHW * 2} height={48} rx={10} className="replayBtnPill" />
+              <path d="M9,0 A9,9,0,1,1,0,-9" className="replayBtnIcon" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+              <path d="M-4,-13 L3,-9 L-2,-3" className="replayBtnIcon" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+          </>
         );
       })()}
     </svg>

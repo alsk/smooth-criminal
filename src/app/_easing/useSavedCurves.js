@@ -83,7 +83,9 @@ export function useSavedCurves() {
     reader.readAsText(file);
   };
 
-  return { saved, hydrated, add, remove, rename, exportJSON, importJSON };
+  const reorder = (newOrder) => setSaved(newOrder);
+
+  return { saved, hydrated, add, remove, rename, reorder, exportJSON, importJSON };
 }
 
 function cloneAnchors(anchors) {

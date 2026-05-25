@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Easing Editor",
-  description: "Visual editor for vector easing curves",
+  title: "Smooth Criminal - Are Your Animations OK, Annie?",
+  description: "Stop murdering your animations. Design, save and export your favorite easing curves. No more ease-in-out by default.",
+  icons: { icon: "/assets/emoji.png" },
 };
 
 export default function RootLayout({ children }) {

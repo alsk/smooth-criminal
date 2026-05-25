@@ -126,6 +126,89 @@ export function splitSegment(prev, next, t) {
   };
 }
 
+// Fit a CSS cubic-bezier(x1,y1,x2,y2) to the curve.
+// 2-anchor curves: exact extraction. Multi-anchor: iterative least-squares.
+export function fitCubicBezier(anchors, samples) {
+  if (anchors.length === 2) {
+    const a0 = anchors[0], a1 = anchors[1];
+    const x1 = a0.x + (a0.hOut?.dx ?? 0);
+    const y1 = a0.y + (a0.hOut?.dy ?? 0);
+    const x2 = a1.x + (a1.hIn?.dx ?? 0);
+    const y2 = a1.y + (a1.hIn?.dy ?? 0);
+    return { x1, y1, x2, y2, exact: true };
+  }
+
+  const N = 64;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const x = i / (N - 1);
+    pts.push({ x, y: sampleY(samples, x) });
+  }
+
+  let x1 = 1 / 3, x2 = 2 / 3, y1 = 0, y2 = 1;
+  for (let iter = 0; iter < 8; iter++) {
+    const ts = pts.map(p => _solveBezierT(p.x, x1, x2));
+    [y1, y2] = _lsqFit2(ts, pts.map(p => p.y), null);
+    [x1, x2] = _lsqFit2(ts, pts.map(p => p.x), [0, 1]);
+  }
+  return { x1, y1, x2, y2, exact: false };
+}
+
+function _solveBezierT(x, x1, x2) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 16; i++) {
+    const mid = (lo + hi) / 2;
+    const bx = 3 * mid * (1 - mid) * (1 - mid) * x1 + 3 * mid * mid * (1 - mid) * x2 + mid * mid * mid;
+    if (bx < x) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function _lsqFit2(ts, vs, clamp) {
+  let a00 = 0, a01 = 0, a11 = 0, b0 = 0, b1 = 0;
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i], v = vs[i];
+    const bb1 = 3 * t * (1 - t) * (1 - t);
+    const bb2 = 3 * t * t * (1 - t);
+    const r = v - t * t * t;
+    a00 += bb1 * bb1; a01 += bb1 * bb2; a11 += bb2 * bb2;
+    b0 += bb1 * r; b1 += bb2 * r;
+  }
+  const det = a00 * a11 - a01 * a01;
+  if (Math.abs(det) < 1e-12) return [1 / 3, 2 / 3];
+  let p1 = (a11 * b0 - a01 * b1) / det;
+  let p2 = (a00 * b1 - a01 * b0) / det;
+  if (clamp) {
+    p1 = Math.max(clamp[0], Math.min(clamp[1], p1));
+    p2 = Math.max(clamp[0], Math.min(clamp[1], p2));
+  }
+  return [p1, p2];
+}
+
+export function buildCubicBezierCss(anchors, samples) {
+  const { x1, y1, x2, y2, exact } = fitCubicBezier(anchors, samples);
+  const fmt = (n) => {
+    const r = Math.round(n * 1000) / 1000;
+    return Object.is(r, -0) ? "0" : String(r);
+  };
+  let error = 0;
+  if (!exact && samples.length > 0) {
+    let sumSq = 0;
+    const N = 48;
+    for (let i = 0; i < N; i++) {
+      const x = i / (N - 1);
+      const t = _solveBezierT(x, x1, x2);
+      const fy = 3 * t * (1 - t) * (1 - t) * y1 + 3 * t * t * (1 - t) * y2 + t * t * t;
+      const ay = sampleY(samples, x);
+      sumSq += (fy - ay) ** 2;
+    }
+    error = Math.sqrt(sumSq / N);
+  }
+  return { str: `cubic-bezier(${fmt(x1)}, ${fmt(y1)}, ${fmt(x2)}, ${fmt(y2)})`, exact, x1, y1, x2, y2, error };
+}
+
 export function findSegmentForX(anchors, x) {
   for (let i = 1; i < anchors.length; i++) {
     if (x >= anchors[i - 1].x && x <= anchors[i].x) return i;

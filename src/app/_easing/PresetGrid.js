@@ -34,7 +34,7 @@ export default function PresetGrid({ onPick, activeKey }) {
   return (
     <div className="presetSection">
       <div className="savedHeader">
-        <span className="savedHeaderLabel">Presets</span>
+        <span className="savedHeaderLabel">Recipes</span>
       </div>
 
       <div className="presetGrid">
@@ -48,7 +48,7 @@ export default function PresetGrid({ onPick, activeKey }) {
         className={`pennerToggle ${pennerActive ? "pennerToggleActive" : ""}`}
         onClick={() => setPennerOpen((v) => !v)}
       >
-        Penner easings
+        Penner easings (classics)
         {pennerActive && <span className="pennerActiveDot" />}
         <svg
           width="13"

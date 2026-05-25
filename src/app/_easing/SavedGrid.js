@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, LayoutGroup, motion, Reorder } from "motion/react";
 import CurveThumbnail from "./CurveThumbnail";
 
 export default function SavedGrid({
@@ -10,6 +11,7 @@ export default function SavedGrid({
   onPick,
   onRename,
   onDelete,
+  onReorder,
   onExport,
   onImport,
   newlyAddedId,
@@ -65,44 +67,51 @@ export default function SavedGrid({
               e.target.value = "";
             }}
           />
-          <button type="button" className="pushBtn savedPrimaryBtn" onClick={onSave}>
-            <span className="pushFace">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-              </svg>
-              save current curve
-            </span>
-          </button>
         </div>
       </div>
 
-      {saved.length === 0 ? (
-        <div className="savedEmpty">No saved curves yet</div>
-      ) : (
-        <div className="presetGrid">
-          {saved.map((cell) => {
-            const key = `saved.${cell.id}`;
-            const isActive = key === activeKey;
-            const isEditing = editingId === cell.id;
-            return (
-              <SavedCell
-                key={cell.id}
-                cell={cell}
-                isActive={isActive}
-                isEditing={isEditing}
-                onPick={() => onPick(cell)}
-                onStartEdit={() => setEditingId(cell.id)}
-                onEndEdit={() => setEditingId(null)}
-                onRename={(name) => onRename(cell.id, name)}
-                onDelete={() => {
-                  if (isEditing) setEditingId(null);
-                  onDelete(cell.id);
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
+      <Reorder.Group as="div" axis="x" values={saved} onReorder={onReorder} className="presetGrid">
+        <LayoutGroup>
+          <AnimatePresence mode="popLayout" initial={false}>
+            {saved.map((cell) => {
+              const key = `saved.${cell.id}`;
+              const isActive = key === activeKey;
+              const isEditing = editingId === cell.id;
+              return (
+                <SavedCell
+                  key={cell.id}
+                  cell={cell}
+                  isActive={isActive}
+                  isEditing={isEditing}
+                  onPick={() => onPick(cell)}
+                  onStartEdit={() => setEditingId(cell.id)}
+                  onEndEdit={() => setEditingId(null)}
+                  onRename={(name) => onRename(cell.id, name)}
+                  onDelete={() => {
+                    if (isEditing) setEditingId(null);
+                    onDelete(cell.id);
+                  }}
+                />
+              );
+            })}
+          </AnimatePresence>
+          <motion.button
+            type="button"
+            layout
+            transition={{ layout: { duration: 0.25, ease: [0.2, 0.7, 0.2, 1] } }}
+            className="presetCell savedAddCell"
+            onClick={onSave}
+          >
+            <div className="presetThumb savedAddThumb">
+              <img src="/sticks/keeper.png" alt="" className="keeperSticker" />
+              <svg className="savedAddPlus" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M10 3v14M3 10h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <span className="presetCellLabel">Save curve</span>
+          </motion.button>
+        </LayoutGroup>
+      </Reorder.Group>
     </div>
   );
 }
@@ -118,6 +127,8 @@ function SavedCell({
   onDelete,
 }) {
   const inputRef = useRef(null);
+  const [confirming, setConfirming] = useState(false);
+  const cancelTimerRef = useRef(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -126,37 +137,65 @@ function SavedCell({
     }
   }, [isEditing]);
 
+  useEffect(() => () => clearTimeout(cancelTimerRef.current), []);
+
   const onCellClick = () => {
-    if (isEditing) return;
+    if (isEditing || confirming) return;
     onPick();
   };
 
   const onCellKeyDown = (e) => {
-    if (isEditing) return;
+    if (isEditing || confirming) return;
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onPick();
     }
+    if (e.key === "Escape") setConfirming(false);
+  };
+
+  const onDeleteClick = (e) => {
+    e.stopPropagation();
+    if (confirming) {
+      onDelete();
+    } else {
+      setConfirming(true);
+      cancelTimerRef.current = setTimeout(() => setConfirming(false), 2500);
+    }
   };
 
   return (
-    <div
+    <Reorder.Item
+      value={cell}
+      layout
+      initial={{ scale: 0.85, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+      whileTap={{ scale: 0.96 }}
+      transition={{
+        layout: { duration: 0.25, ease: [0.2, 0.7, 0.2, 1] },
+        scale: { duration: 0.18, ease: [0.2, 0.7, 0.2, 1] },
+        opacity: { duration: 0.15 },
+      }}
       role="button"
       tabIndex={0}
       onClick={onCellClick}
       onKeyDown={onCellKeyDown}
-      className={`presetCell savedCell ${isActive ? "presetCellActive" : ""}`}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setConfirming(false); }}
+      className={`presetCell savedCell ${isActive ? "presetCellActive" : ""} ${confirming ? "savedCellConfirming" : ""}`}
+      style={{ listStyle: "none" }}
     >
+
       <button
         type="button"
-        className="savedDelete"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        aria-label={`Delete ${cell.name}`}
+        className={`savedDelete ${confirming ? "savedDeleteConfirming" : ""}`}
+        onClick={onDeleteClick}
+        aria-label={confirming ? "Confirm delete" : `Delete ${cell.name}`}
       >
-        ×
+        {confirming ? "delete?" : (
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+            <path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        )}
       </button>
       <div className="presetThumb">
         <CurveThumbnail anchors={cell.anchors} />
@@ -194,6 +233,6 @@ function SavedCell({
           {cell.name}
         </span>
       )}
-    </div>
+    </Reorder.Item>
   );
 }
