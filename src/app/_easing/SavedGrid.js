@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, LayoutGroup, motion, Reorder } from "motion/react";
+import { AnimatePresence, motion, Reorder } from "motion/react";
 import CurveThumbnail from "./CurveThumbnail";
 
 export default function SavedGrid({
@@ -71,7 +71,6 @@ export default function SavedGrid({
       </div>
 
       <Reorder.Group as="div" axis="x" values={saved} onReorder={onReorder} className="presetGrid">
-        <LayoutGroup>
           <AnimatePresence mode="popLayout" initial={false}>
             {saved.map((cell) => {
               const key = `saved.${cell.id}`;
@@ -94,23 +93,23 @@ export default function SavedGrid({
                 />
               );
             })}
+            <motion.button
+              key="__add__"
+              type="button"
+              layout
+              transition={{ layout: { duration: 0.25, ease: [0.2, 0.7, 0.2, 1] } }}
+              className="presetCell savedAddCell"
+              onClick={onSave}
+            >
+              <div className="presetThumb savedAddThumb">
+                <img src="/sticks/keeper.png" alt="" className="keeperSticker" />
+                <svg className="savedAddPlus" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M10 3v14M3 10h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span className="presetCellLabel">Save curve</span>
+            </motion.button>
           </AnimatePresence>
-          <motion.button
-            type="button"
-            layout
-            transition={{ layout: { duration: 0.25, ease: [0.2, 0.7, 0.2, 1] } }}
-            className="presetCell savedAddCell"
-            onClick={onSave}
-          >
-            <div className="presetThumb savedAddThumb">
-              <img src="/sticks/keeper.png" alt="" className="keeperSticker" />
-              <svg className="savedAddPlus" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M10 3v14M3 10h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <span className="presetCellLabel">Save curve</span>
-          </motion.button>
-        </LayoutGroup>
       </Reorder.Group>
     </div>
   );

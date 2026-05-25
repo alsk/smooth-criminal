@@ -12,7 +12,7 @@ const BEZIER_DESC_EXACT =
   "An exact CSS cubic-bezier() extracted from the curve's two control points. Works natively in all browsers and in any tool that accepts a timing function.";
 
 const BEZIER_DESC_APPROX =
-  "A best-fit CSS cubic-bezier() approximating this multi-point curve. The fit is computed via iterative least-squares — it won't be pixel-perfect but is good for most use cases.";
+  "A CSS cubic-bezier() defines a curve with two control points (P1 and P2) that shape how a value eases between 0 and 1. It's the standard timing function format for CSS animations and transitions.";
 
 const PATH_USAGE = `// GSAP CustomEase
 const ease = CustomEase.create("ease", "M0,0 C…")
