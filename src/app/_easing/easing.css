@@ -167,7 +167,7 @@
   transition: color 160ms ease, background-color .1s;
   padding: 7px 12px;
   border-radius: 6px;
-  background-color: #faf3f2;
+  background-color: #fdf7f6;
 }
 
 .xHandle:hover { color: var(--ink-muted); background-color: #faf3f2;}
@@ -288,7 +288,7 @@
   padding: 18px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   position: relative;
 }
 
@@ -313,7 +313,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -442,15 +442,14 @@
 
 .presetCellLabel {
   font-size: 10px;
-  letter-spacing: 0.02em;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.15;
   color: inherit;
   hyphens: auto;
   overflow-wrap: break-word;
   word-break: break-word;
   border: 1px solid transparent;
-  padding: 2px 4px;
+  padding: 2px 0px;
 }
 
 /* ─── SAVED CELLS ────────────────────────────────────────────── */
@@ -502,7 +501,8 @@
   line-height: 1.3;
   color: var(--ink);
   background: var(--paper);
-  border: 1px solid var(--accent);
+  /* border: 1px solid var(--accent); */
+  border: none;
   border-radius: 6px;
   padding: 2px 4px;
   outline: none;
@@ -528,11 +528,11 @@
   text-transform: uppercase;
   border: 1px solid #e7dbda;
   text-align: left;
-  background: transparent;
+  background: #fdf7f6;
   transition: background 160ms ease, color 160ms ease;
 }
 
-.pennerToggle:hover { background: #f8f3f2; color: var(--ink); }
+.pennerToggle:hover { background: #faf4f3; color: var(--ink); }
 .pennerToggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .pennerToggleActive { background: var(--accent-soft); color: var(--accent-deep); }
@@ -542,8 +542,8 @@
 .pennerChevronOpen { transform: rotate(-90deg); }
 .pennerActiveDot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
-.pennerDrawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.2, 1); }
-.pennerDrawerOpen { grid-template-rows: 1fr; }
+.pennerDrawer { display: grid; grid-template-rows: 0fr; margin-top: -14px; transition: grid-template-rows 280ms cubic-bezier(0.2, 0.7, 0.2, 1), margin-top 280ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.pennerDrawerOpen { grid-template-rows: 1fr; margin-top: 0; }
 .pennerDrawerInner { overflow: hidden; }
 .pennerDrawerOpen .pennerDrawerInner { padding-bottom: 4px; }
 
@@ -573,7 +573,7 @@
   justify-content: space-between;
   align-items: flex-end;
   font-size: 10px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   font-weight: 500;
   color: var(--ink-muted);
@@ -582,10 +582,13 @@
 .codeLabelRow {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .infoBtn, .alertBtn {
