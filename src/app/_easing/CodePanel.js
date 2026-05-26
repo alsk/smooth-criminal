@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 
 const PATH_DESC =
   "An SVG path string that traces the easing curve from (0,0) to (1,1). Used by animation tools that accept path-based custom easings.";
@@ -156,6 +157,8 @@ function SyntaxHighlight({ code, lang }) {
 
 function CodeCell({ label, code, description, usage, showAlert, alertDesc, lang = 'js', hideContent = false }) {
   const [copied, setCopied] = useState(false);
+  const [peaches, setPeaches] = useState([]);
+  const copiedTimerRef = useRef(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [howToOpen, setHowToOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -187,8 +190,19 @@ function CodeCell({ label, code, description, usage, showAlert, alertDesc, lang 
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {}
+    const peach = {
+      id: Math.random(),
+      x: `${8 + Math.random() * 60}%`,
+      y: `${-(12 + Math.random() * 18)}px`,
+      scale: 0.5 + Math.random() * 0.6,
+      rotStart: `${-50 + Math.random() * 40}deg`,
+      rotEnd: `${-20 + Math.random() * 40}deg`,
+    };
+    setPeaches((p) => [...p, peach]);
+    setTimeout(() => setPeaches((p) => p.filter((x) => x.id !== peach.id)), 800);
   };
 
   return (
@@ -227,17 +241,38 @@ function CodeCell({ label, code, description, usage, showAlert, alertDesc, lang 
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={copy}
-          className={`pushBtn copyBlockBtn ${copied ? "copyBlockBtnDone" : ""}`}
-          style={hideContent ? { opacity: 0, pointerEvents: "none", transition: "opacity 250ms ease" } : { opacity: 1, transition: "opacity 250ms ease" }}
-        >
-          <span className="pushFace">
-            {copied ? <CheckIcon /> : <ClipboardIcon />}
-            {copied ? "Copied!" : "Copy code"}
-          </span>
-        </button>
+        <div className="copyBtnWrap" style={hideContent ? { opacity: 0, pointerEvents: "none", transition: "opacity 250ms ease" } : { opacity: 1, transition: "opacity 250ms ease" }}>
+          {peaches.map(({ id, x, y, scale, rotStart, rotEnd }) => (
+            <img
+              key={id}
+              src="/assets/emoji.png"
+              className="peachPop"
+              style={{ '--x': x, '--y': y, '--scale': scale, '--rot-start': rotStart, '--rot-end': rotEnd }}
+              alt=""
+              aria-hidden="true"
+            />
+          ))}
+          <button
+            type="button"
+            onClick={copy}
+            className={`pushBtn copyBlockBtn ${copied ? "copyBlockBtnDone" : ""}`}
+          >
+            <motion.span className="pushFace" layout style={{ overflow: "hidden", whiteSpace: "nowrap" }} transition={{ duration: 0.15, type: "tween", ease: [0.2, 0, 0, 1] }}>
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={copied ? "done" : "idle"}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.12, delay: 0.1 } }}
+                  exit={{ opacity: 0, y: -4, transition: { duration: 0.1, ease: [0, 0, 0.6, 1] } }}
+                  transition={{ duration: 0.12 }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+                >
+                  {copied ? <><CheckIcon /> Copied!</> : <><ClipboardIcon /> Copy code</>}
+                </motion.span>
+              </AnimatePresence>
+            </motion.span>
+          </button>
+        </div>
       </div>
       <div className={`codePanelBody ${!hideContent ? "codePanelBodyOpen" : ""}`}>
         <div className="codePanelBodyInner">

@@ -354,9 +354,16 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   transform: translate3d(0, -3px, 0);
-  transition: transform 220ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1),
               background 160ms ease, color 160ms ease;
+  will-change: transform;
 }
+
+.pushFace > * {
+  will-change: transform;
+}
+
+.copyBlockBtn .pushFace { transform: none; }
 
 .pushFace:hover{
   background: #f8f3f2;
@@ -378,6 +385,7 @@
 
 .keeperSticker{
   pointer-events: none;
+  user-select: none;
   will-change: transform;
   transition: transform .2s linear(0, 0.2651, 0.4881, 0.6711, 0.8162, 0.9267, 1.0061, 1.0582, 1.0873, 1.0975, 1.0934, 1.0794, 1.0596, 1.0383, 1.019, 1.0053, 1);
 }
@@ -652,6 +660,25 @@
 
 /* .copyBlockBtn { margin-bottom: 3px; background: var(--ink-faint); } */
 /* .copyBlockBtnDone .pushFace { background: var(--accent-soft); color: var(--accent-deep); border-color: var(--accent); } */
+
+
+.copyBtnWrap { position: relative; }
+
+@keyframes peachPop {
+  0%   { transform: scale(0.2) rotate(var(--rot-start, -40deg)); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(var(--y, -20px)) scale(var(--scale, 0.9)) rotate(var(--rot-end, -4deg)); opacity: 0; }
+}
+
+.peachPop {
+  position: absolute;
+  bottom: 100%;
+  right: var(--x, 30%);
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  animation: peachPop 750ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
 
 .codeBlock {
   margin: 0;

@@ -114,7 +114,7 @@ function toWords(s) {
 function formatLabel(name, variant) {
   if (name === "steps") return `steps${variant}`;
   const capVariant = variant === "default" ? "" : variant.charAt(0).toUpperCase() + variant.slice(1);
-  return toWords(name + capVariant);
+  return toWords(name + capVariant).replace(' In Out', ' In-Out');
 }
 
 // snap: default → soft → inOut; Penner: out → inOut
