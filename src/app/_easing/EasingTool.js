@@ -143,7 +143,7 @@ export default function EasingTool() {
           </div>
 
           <div className="right">
-            <CodePanel pathString={pathString} linearCss={linearCss} linearGoesBackward={linearGoesBackward} cubicBezier={cubicBezier} duration={duration} />
+            <PresetGrid onPick={onPickPreset} activeKey={activeKey} />
             <SavedGrid
               saved={saved}
               activeKey={activeKey}
@@ -157,7 +157,7 @@ export default function EasingTool() {
               newlyAddedId={newlyAddedId}
               onClearNewlyAdded={() => setNewlyAddedId(null)}
             />
-            <PresetGrid onPick={onPickPreset} activeKey={activeKey} />
+            <CodePanel pathString={pathString} linearCss={linearCss} linearGoesBackward={linearGoesBackward} cubicBezier={cubicBezier} duration={duration} />
           </div>
         </div>
       </div>
