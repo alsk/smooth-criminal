@@ -170,7 +170,7 @@
   background-color: #faf3f2;
 }
 
-.xHandle:hover { color: var(--ink-muted); background-color: #f6f0f0;}
+.xHandle:hover { color: var(--ink-muted); background-color: #faf3f2;}
 
 .layout {
   display: grid;
@@ -697,7 +697,7 @@
 .codeUsageBlock {
   margin: 0;
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.4;
   color: #e8e2d9;
   white-space: pre;
@@ -722,7 +722,7 @@
 }
 
 @keyframes stickerIn {
-  from { transform: translateY(30px) rotate(6deg); opacity: 0; }
+  from { transform: translateY(30px) rotate(-16deg); opacity: 0; }
   to   { transform: translateY(0) rotate(-3deg); opacity: 1;}
 }
 
