@@ -1,4 +1,4 @@
-import { Work_Sans, Inconsolata } from "next/font/google";
+import { Work_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./_easing/easing.css";
 
@@ -9,10 +9,9 @@ const workSans = Work_Sans({
   style: ["normal", "italic"],
 });
 
-const inconsolata = Inconsolata({
-  variable: "--font-inconsolata",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 export const metadata = {
@@ -38,7 +37,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${workSans.variable} ${inconsolata.variable}`}>
+    <html lang="en" className={`${workSans.variable} ${geistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -255,7 +255,7 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
 
       {onDurationChange && (() => {
         const label = formatDuration(duration);
-        const pillW = Math.round(label.length * 14 + 40);
+        const pillW = Math.round(label.length * 16 + 40);
         const by = H - PAD + 38;
         const bx = gxToSvg(1);
         const btnHW = 24;
@@ -286,7 +286,7 @@ export default function Graph({ anchors, setAnchors, duration = 1500, onDuration
             </g>
             {onFlip && (() => {
               const flipLabel = "Flip the curve";
-              const flipPillW = Math.round(flipLabel.length * 14 + 40);
+              const flipPillW = Math.round(flipLabel.length * 16 + 40);
               const flipCenterX = bx - btnHW * 2 - gap - pillW - gap - flipPillW / 2;
               return (
                 <g

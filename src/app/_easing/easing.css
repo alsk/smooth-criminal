@@ -13,7 +13,7 @@
   --accent-soft: hsl(8.42deg 87.69% 87.25% / 20%);
   --accent-deep: #c45c72;
   --sans: var(--font-work-sans), system-ui, sans-serif;
-  --mono: var(--font-inconsolata), ui-monospace, monospace;
+  --mono: var(--font-geist-mono), ui-monospace, monospace;
 
   min-height: 100dvh;
   background: var(--bg);
