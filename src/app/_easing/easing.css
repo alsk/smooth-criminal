@@ -13,7 +13,7 @@
   --accent-soft: hsl(8.42deg 87.69% 87.25% / 20%);
   --accent-deep: #c45c72;
   --sans: var(--font-work-sans), system-ui, sans-serif;
-  --mono: var(--font-geist-mono), ui-monospace, monospace;
+  --mono: var(--font-inconsolata), ui-monospace, monospace;
 
   min-height: 100dvh;
   background: var(--bg);
@@ -164,13 +164,13 @@
   letter-spacing: 0.04em;
   color: #928f89;
   text-decoration: none;
-  transition: color 160ms ease;
+  transition: color 160ms ease, background-color .1s;
   padding: 7px 12px;
   border-radius: 6px;
   background-color: #faf3f2;
 }
 
-.xHandle:hover { color: var(--ink-muted); }
+.xHandle:hover { color: var(--ink-muted); background-color: #f6f0f0;}
 
 .layout {
   display: grid;
@@ -272,6 +272,13 @@
 .replayBtn:hover .replayBtnPill { fill: var(--accent-soft); stroke: var(--accent); }
 .replayBtnIcon { stroke: var(--ink-soft); transition: stroke 160ms ease; }
 .replayBtn:hover .replayBtnIcon { stroke: var(--accent-deep); }
+
+.flipBtn { cursor: pointer; filter: drop-shadow(0 1px 3px rgba(23, 20, 17, 0.1)); transition: filter 160ms ease; }
+.flipBtn:hover { filter: drop-shadow(0 2px 6px rgba(23, 20, 17, 0.14)); }
+.flipBtnPill { fill: var(--paper); stroke: var(--ink-faint); stroke-width: 2; transition: fill 160ms ease, stroke 160ms ease; }
+.flipBtn:hover .flipBtnPill { fill: var(--accent-soft); stroke: var(--accent); }
+.flipBtnText { fill: var(--ink-soft); font-size: 26px; font-family: var(--mono); letter-spacing: 0.04em; user-select: none; transition: fill 160ms ease; }
+.flipBtn:hover .flipBtnText { fill: var(--accent-deep); }
 
 /* ─── SAVED & PRESET SECTIONS ────────────────────────────────── */
 .savedSection, .presetSection {
@@ -690,8 +697,8 @@
 .codeUsageBlock {
   margin: 0;
   font-family: var(--mono);
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.4;
   color: #e8e2d9;
   white-space: pre;
   overflow-x: auto;

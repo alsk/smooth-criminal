@@ -89,6 +89,12 @@ export default function EasingTool() {
     if (activeKey === `saved.${id}`) setActiveKey(null);
   };
 
+  const onFlip = () => {
+    saveHistory();
+    setAnchors(flipAnchors(anchors));
+    setActiveKey(null);
+  };
+
   const handleSetAnchors = (updater) => {
     setAnchors(updater);
     setActiveKey(null);
@@ -132,12 +138,12 @@ export default function EasingTool() {
         <div className="layout">
           <div className="left">
             <div className="graphCard">
-              <Graph anchors={anchors} setAnchors={handleSetAnchors} duration={duration} onDurationChange={setDuration} onWillChange={saveHistory} animStartRef={animStartRef} cubicBezier={cubicBezier} />
+              <Graph anchors={anchors} setAnchors={handleSetAnchors} duration={duration} onDurationChange={setDuration} onWillChange={saveHistory} animStartRef={animStartRef} cubicBezier={cubicBezier} onFlip={onFlip} />
             </div>
           </div>
 
           <div className="right">
-            <CodePanel pathString={pathString} linearCss={linearCss} linearGoesBackward={linearGoesBackward} cubicBezier={cubicBezier} />
+            <CodePanel pathString={pathString} linearCss={linearCss} linearGoesBackward={linearGoesBackward} cubicBezier={cubicBezier} duration={duration} />
             <SavedGrid
               saved={saved}
               activeKey={activeKey}
@@ -164,5 +170,14 @@ function cloneAnchors(anchors) {
     ...a,
     hIn: a.hIn ? { ...a.hIn } : null,
     hOut: a.hOut ? { ...a.hOut } : null,
+  }));
+}
+
+function flipAnchors(anchors) {
+  return [...anchors].reverse().map((a) => ({
+    x: 1 - a.x,
+    y: 1 - a.y,
+    hIn:  a.hOut ? { dx: -a.hOut.dx, dy: -a.hOut.dy } : null,
+    hOut: a.hIn  ? { dx: -a.hIn.dx,  dy: -a.hIn.dy  } : null,
   }));
 }

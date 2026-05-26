@@ -32,19 +32,22 @@ function buildLinearUsage(linearCss) {
   return `.element {\n  transition: transform 1s linear(${preview});\n}`;
 }
 
-const BEZIER_USAGE = `.element {
-  transition: transform 1s cubic-bezier(…);
-  animation-timing-function: cubic-bezier(…);
+const TW_DURATION_STEPS = [75, 100, 150, 200, 300, 500, 700, 1000];
+function twDuration(ms) {
+  return TW_DURATION_STEPS.includes(ms) ? `duration-${ms}` : `duration-[${ms}ms]`;
 }
 
-/* Tailwind — arbitrary value */
-/* class="ease-[cubic-bezier(…)]" */
+function buildBezierUsage(duration) {
+  const s = (duration / 1000).toFixed(duration % 1000 === 0 ? 0 : 2).replace(/\.?0+$/, '') + 's';
+  return `.element {
+  transition: transform ${s} cubic-bezier(…);
+}
 
-/* Tailwind — config */
-/* transitionTimingFunction: { custom: 'cubic-bezier(…)' } */
-/* class="ease-custom" */`;
+/* Tailwind */
+<div class="ease-[cubic-bezier(…)] transition ${twDuration(duration)}"></div>`;
+}
 
-export default function CodePanel({ pathString, linearCss, linearGoesBackward, cubicBezier }) {
+export default function CodePanel({ pathString, linearCss, linearGoesBackward, cubicBezier, duration = 300 }) {
   return (
     <div className="codeStack">
       <CodeCell label="vector path" code={pathString} description={PATH_DESC} usage={PATH_USAGE} lang="js" />
@@ -54,7 +57,7 @@ export default function CodePanel({ pathString, linearCss, linearGoesBackward, c
           label="css cubic-bezier()"
           code={cubicBezier.str}
           description={cubicBezier.exact ? BEZIER_DESC_EXACT : BEZIER_DESC_APPROX}
-          usage={BEZIER_USAGE}
+          usage={buildBezierUsage(duration)}
           lang="css"
           showAlert={!cubicBezier.exact}
           alertDesc="CSS cubic-bezier() doesn't allow extra anchor points. Use css linear() if you need the current curve."
@@ -80,6 +83,34 @@ function SyntaxHighlight({ code, lang }) {
   if (lang === 'css') {
     for (const line of code.split('\n')) {
       if (parts.length > 0) parts.push('\n');
+      // HTML tag line: <tag ...> or </tag>
+      const closeTag = line.match(/^(\s*)(<\/[\w-]+>)(.*)$/);
+      if (closeTag) {
+        parts.push(closeTag[1]);
+        parts.push(<span key={key++} style={{ color: '#9bb5c4' }}>{closeTag[2]}</span>);
+        parts.push(closeTag[3]);
+        continue;
+      }
+      const openTag = line.match(/^(\s*)(<)([\w-]+)(\s+class=")([^"]*)(")([^>]*>)(.*)$/);
+      if (openTag) {
+        parts.push(openTag[1]);
+        parts.push(<span key={key++} style={{ color: '#9bb5c4' }}>{openTag[2]}{openTag[3]}</span>);
+        parts.push(<span key={key++} style={{ color: '#9db87a' }}>{openTag[4]}</span>);
+        // highlight the easing class inside the class value
+        const cls = openTag[5];
+        const cm = cls.match(/(.*)(ease-\[cubic-bezier\([^)]*…[^)]*\)\])(.*)/);
+        if (cm) {
+          parts.push(<span key={key++} style={STR_STYLE}>{cm[1]}</span>);
+          parts.push(<span key={key++} style={{ ...STR_STYLE, ...EASING_HIGHLIGHT }}>{cm[2]}</span>);
+          parts.push(<span key={key++} style={STR_STYLE}>{cm[3]}</span>);
+        } else {
+          parts.push(<span key={key++} style={STR_STYLE}>{cls}</span>);
+        }
+        parts.push(<span key={key++} style={{ color: '#9db87a' }}>{openTag[6]}</span>);
+        parts.push(<span key={key++} style={{ color: '#9bb5c4' }}>{openTag[7]}</span>);
+        parts.push(openTag[8]);
+        continue;
+      }
       const sel = line.match(/^(\s*)([.#][\w-]+)(.*)$/);
       if (sel) {
         parts.push(sel[1]);

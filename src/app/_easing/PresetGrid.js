@@ -34,7 +34,7 @@ export default function PresetGrid({ onPick, activeKey }) {
   return (
     <div className="presetSection">
       <div className="savedHeader">
-        <span className="savedHeaderLabel">Recipes</span>
+        <span className="savedHeaderLabel">Presets</span>
       </div>
 
       <div className="presetGrid">
